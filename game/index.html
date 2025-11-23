@@ -4,10 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Game Arcade - 30 Games</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <style>
+        /* [EXISTING CSS (OMITTED FOR BREVITY) - Keep your existing styles] */
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
-        .container { max-width: 1400px; margin: 0 auto; }
+        #app { max-width: 1400px; margin: 0 auto; }
         header { text-align: center; color: white; margin-bottom: 40px; padding: 20px; }
         header h1 { font-size: 3rem; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
         header p { font-size: 1.2rem; opacity: 0.9; margin-bottom: 20px; }
@@ -24,98 +27,311 @@
         .play-btn:hover { transform: scale(1.05); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); }
         footer { text-align: center; color: white; padding: 20px; font-size: 1.1rem; }
         @media (max-width: 768px) { header h1 { font-size: 2rem; } .games-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 20px; } .game-card { padding: 20px; } .game-icon { font-size: 3rem; } }
+
+        /* --- NEW FILTER STYLES --- */
+        .filter-controls { 
+            text-align: center; 
+            margin-top: 30px; 
+            margin-bottom: 40px;
+        }
+        .filter-controls button {
+            background-color: rgba(255, 255, 255, 0.15);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 5px;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+        .filter-controls button:hover, .filter-controls button.active {
+            background-color: white;
+            color: #764ba2;
+            transform: scale(1.05);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        /* [EXISTING AUTH STYLES (OMITTED FOR BREVITY) - Keep your existing styles] */
+        .auth-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex; align-items: center; justify-content: center; z-index: 9999;
+        }
+        .container { background-color: #fff; border-radius: 30px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5); position: relative; overflow: hidden; width: 768px; max-width: 90%; min-height: 480px; }
+        .container p { font-size: 14px; line-height: 20px; letter-spacing: 0.3px; margin: 20px 0; }
+        .container span { font-size: 12px; }
+        .container button { background-color: #512da8; color: #fff; font-size: 12px; padding: 10px 45px; border: 1px solid transparent; border-radius: 8px; font-weight: 600; text-transform: uppercase; margin-top: 10px; cursor: pointer; }
+        .container button.hidden { background-color: transparent; border-color: #fff; }
+        .container form { background-color: #fff; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 0 40px; height: 100%; }
+        .container input { background-color: #eee; border: none; margin: 8px 0; padding: 10px 15px; font-size: 13px; border-radius: 8px; width: 100%; outline: none; }
+        .form-container { position: absolute; top: 0; height: 100%; transition: all 0.6s ease-in-out; }
+        .sign-in { left: 0; width: 50%; z-index: 2; }
+        .container.active .sign-in { transform: translateX(100%); }
+        .sign-up { left: 0; width: 50%; opacity: 0; z-index: 1; }
+        .container.active .sign-up { transform: translateX(100%); opacity: 1; z-index: 5; }
+        .toggle-container { position: absolute; top: 0; left: 50%; width: 50%; height: 100%; overflow: hidden; transition: all 0.6s ease-in-out; border-radius: 150px 0 0 100px; z-index: 1000; }
+        .container.active .toggle-container { transform: translateX(-100%); border-radius: 0 150px 100px 0; }
+        .toggle { background: linear-gradient(to right, #5c6bc0, #512da8); color: #fff; position: relative; left: -100%; height: 100%; width: 200%; transform: translateX(0); transition: all 0.6s ease-in-out; }
+        .container.active .toggle { transform: translateX(50%); }
+        .toggle-panel { position: absolute; width: 50%; height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 0 30px; text-align: center; top: 0; transition: all 0.6s ease-in-out; }
+        .toggle-left { transform: translateX(-200%); }
+        .container.active .toggle-left { transform: translateX(0); }
+        .toggle-right { right: 0; transform: translateX(0); }
+        .container.active .toggle-right { transform: translateX(200%); }
     </style>
 </head>
-<body>
-    <div class="container">
+<body onload="checkLoginState()">
+
+    <div class="auth-overlay" id="authOverlay">
+        <div class="container" id="authContainer">
+            
+            <div class="form-container sign-up">
+                <form id="registerForm">
+                    <h1>Create Account</h1>
+                    <p>Join the Arcade!</p>
+                    <input type="text" id="regName" placeholder="Name" required>
+                    <input type="email" id="regEmail" placeholder="Email" required>
+                    <input type="password" id="regPass" placeholder="Password" required>
+                    <button type="submit">Sign Up</button>
+                    <div id="regMessage" style="color:red; margin-top: 10px;"></div>
+                </form>
+            </div>
+
+            <div class="form-container sign-in">
+                <form id="loginForm">
+                    <h1>Sign In</h1>
+                    <p>Access 30 Games</p>
+                    <input type="email" id="loginEmail" placeholder="Email" required>
+                    <input type="password" id="loginPass" placeholder="Password" required>
+                    <button type="submit">Sign In</button>
+                    <div id="loginMessage" style="color:red; margin-top: 10px;"></div>
+                </form>
+            </div>
+
+            <div class="toggle-container">
+                <div class="toggle">
+                    <div class="toggle-panel toggle-left">
+                        <h1>Welcome Back!</h1>
+                        <p>Sign in to play your favorite games.</p>
+                        <button class="hidden" id="loginToggle">Sign In</button>
+                    </div>
+                    <div class="toggle-panel toggle-right">
+                        <h1>New Player?</h1>
+                        <p>Register now and start your adventure!</p>
+                        <button class="hidden" id="registerToggle">Sign Up</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="app" style="display: none;">
         <header>
             <h1>🎮 Game Arcade</h1>
-            <p>Choose from 30 awesome games to play!</p>
+            <p id="welcomeUser">Welcome, Guest! Choose from 30 awesome games to play!</p>
             <div class="search-box">
-                <input type="text" id="searchInput" placeholder="Search games..." onkeyup="searchGames()">
+                <input type="text" id="searchInput" placeholder="Search games..." onkeyup="searchGames(this.value)">
             </div>
+            
+            <div class="filter-controls" id="filterButtons">
+                </div>
+            
+            <button onclick="logout()" style="position: absolute; top: 30px; right: 30px; padding: 10px 20px; background-color: #c93434;">Logout</button>
         </header>
         <div class="games-grid" id="gamesGrid">
-            <div class="game-card" data-name="candy crush"><div class="game-icon">🍬</div><h3>Candy Crush</h3><p>Match colorful candies!</p><a href="01-Candy-Crush-Game/index.html" class="play-btn">Play Now</a></div>
-            
-            <div class="game-card" data-name="archery"><div class="game-icon">🏹</div><h3>Archery Game</h3><p>Hit the target!</p><a href="02-Archery-Game/index.html" class="play-btn">Play Now</a></div>
-            
-            <div class="game-card" data-name="speed typing"><div class="game-icon">⌨️</div><h3>Speed Typing</h3><p>Test your typing speed</p><a href="03-Speed-Typing-Game/index.html" class="play-btn">Play Now</a></div>
-            
-            <div class="game-card" data-name="breakout"><div class="game-icon">🧱</div><h3>Breakout</h3><p>Break all the bricks</p><a href="04-Breakout-Game/index.html" class="play-btn">Play Now</a></div>
-            
-            <div class="game-card" data-name="minesweeper"><div class="game-icon">💣</div><h3>Minesweeper</h3><p>Find all the mines</p><a href="05-Minesweeper-Game/index.html" class="play-btn">Play Now</a></div>
-            
-            <div class="game-card" data-name="tower blocks"><div class="game-icon">🏗️</div><h3>Tower Blocks</h3><p>Stack blocks high!</p><a href="06-Tower-Blocks/index.html" class="play-btn">Play Now</a></div>
-            
-            <div class="game-card" data-name="ping pong"><div class="game-icon">🏓</div><h3>Ping Pong</h3><p>Classic paddle game</p><a href="07-Ping-Pong-Game/index.html" class="play-btn">Play Now</a></div>
-            
-            <div class="game-card" data-name="tetris"><div class="game-icon">🎮</div><h3>Tetris</h3><p>Stack the blocks</p><a href="08-Tetris-Game/index.html" class="play-btn">Play Now</a></div>
-            
-            <div class="game-card" data-name="tilting maze"><div class="game-icon">🌀</div><h3>Tilting Maze</h3><p>Navigate the maze</p><a href="09-Tilting-Maze-Game/index.html" class="play-btn">Play Now</a></div>
-            
-            <div class="game-card" data-name="memory card"><div class="game-icon">🎴</div><h3>Memory Card</h3><p>Match the pairs</p><a href="10-Memory-Card-Game/index.html" class="play-btn">Play Now</a></div>
-            
-            <div class="game-card" data-name="rock paper scissors"><div class="game-icon">✊</div><h3>Rock Paper Scissors</h3><p>Challenge the computer</p><a href="11-Rock-Paper-Scissors/index.html" class="play-btn">Play Now</a></div>
-            
-            <div class="game-card" data-name="number guessing"><div class="game-icon">🔢</div><h3>Type Number Guessing</h3><p>Guess the number</p><a href="12-Type-Number-Guessing-Game/index.html" class="play-btn">Play Now</a></div>
-            
-            <div class="game-card" data-name="tic tac toe"><div class="game-icon">❌</div><h3>Tic Tac Toe</h3><p>Beat your opponent</p><a href="13-Tic-Tac-Toe/index.html" class="play-btn">Play Now</a></div>
-            
-            <div class="game-card" data-name="snake"><div class="game-icon">🐍</div><h3>Snake Game</h3><p>Classic snake adventure</p><a href="14-Snake-Game/index.html" class="play-btn">Play Now</a></div>
-            
-            <div class="game-card" data-name="connect four"><div class="game-icon">🔴</div><h3>Connect Four</h3><p>Line up four pieces</p><a href="15-Connect-Four-Game/index.html" class="play-btn">Play Now</a></div>
-            
-            <div class="game-card" data-name="insect catch"><div class="game-icon">🦋</div><h3>Insect Catch</h3><p>Catch the insects!</p><a href="16-Insect-Catch-Game/index.html" class="play-btn">Play Now</a></div>
-            
-            <div class="game-card" data-name="typing game"><div class="game-icon">⌨️</div><h3>Typing Game</h3><p>Type fast and accurate</p><a href="17-Typing-Game/index.html" class="play-btn">Play Now</a></div>
-            
-            <div class="game-card" data-name="hangman"><div class="game-icon">🔤</div><h3>Hangman</h3><p>Guess the word</p><a href="18-Hangman-Game/index.html" class="play-btn">Play Now</a></div>
-            
-            <div class="game-card" data-name="flappy bird"><div class="game-icon">🐦</div><h3>Flappy Bird</h3><p>Tap to fly!</p><a href="19-Flappy-Bird-Game/index.html" class="play-btn">Play Now</a></div>
-            
-            <div class="game-card" data-name="crossy road"><div class="game-icon">🐔</div><h3>Crossy Road</h3><p>Cross the road safely</p><a href="20-Crossy-Road-Game/index.html" class="play-btn">Play Now</a></div>
-            
-            <div class="game-card" data-name="2048"><div class="game-icon">🔢</div><h3>2048 Game</h3><p>Merge to 2048!</p><a href="21-2048-Game/index.html" class="play-btn">Play Now</a></div>
-            
-            <div class="game-card" data-name="dice roll"><div class="game-icon">🎲</div><h3>Dice Roll Simulator</h3><p>Roll the dice</p><a href="22-Dice-Roll-Simulator/index.html" class="play-btn">Play Now</a></div>
-            
-            <div class="game-card" data-name="shape clicker"><div class="game-icon">🔷</div><h3>Shape Clicker</h3><p>Click the shapes!</p><a href="23-Shape-Clicker-Game/index.html" class="play-btn">Play Now</a></div>
-            
-            <div class="game-card" data-name="typing"><div class="game-icon">⌨️</div><h3>Typing Game 2</h3><p>Another typing challenge</p><a href="24-Typing-Game/index.html" class="play-btn">Play Now</a></div>
-            
-            <div class="game-card" data-name="speak number"><div class="game-icon">🎤</div><h3>Speak Number Guessing</h3><p>Voice-based game</p><a href="25-Speak-Number-Guessing-Game/index.html" class="play-btn">Play Now</a></div>
-            
-            <div class="game-card" data-name="fruit slicer"><div class="game-icon">🍎</div><h3>Fruit Slicer</h3><p>Slice the fruits!</p><a href="26-Fruit-Slicer-Game/index.html" class="play-btn">Play Now</a></div>
-            
-            <div class="game-card" data-name="quiz"><div class="game-icon">❓</div><h3>Quiz Game</h3><p>Test your knowledge</p><a href="27-Quiz-Game/index.html" class="play-btn">Play Now</a></div>
-            
-            <div class="game-card" data-name="emoji catcher"><div class="game-icon">😊</div><h3>Emoji Catcher</h3><p>Catch the emojis!</p><a href="28-Emoji-Catcher-Game/index.html" class="play-btn">Play Now</a></div>
-            
-            <div class="game-card" data-name="whack a mole"><div class="game-icon">🔨</div><h3>Whack A Mole</h3><p>Hit the moles!</p><a href="29-Whack-A-Mole-Game/index.html" class="play-btn">Play Now</a></div>
-            
-            <div class="game-card" data-name="simon says"><div class="game-icon">🎵</div><h3>Simon Says</h3><p>Memory pattern game</p><a href="30-Simon-Says-Game/index.html" class="play-btn">Play Now</a></div>
-        </div>
+            </div>
         <footer>
             <p>🎮 30 Games Collection | Made with ❤️ by Divyesh</p>
         </footer>
     </div>
+    
     <script>
-        function searchGames() {
-            const input = document.getElementById('searchInput');
-            const filter = input.value.toUpperCase();
-            const cards = document.querySelectorAll('.game-card');
-            cards.forEach(card => {
-                const name = card.getAttribute('data-name');
-                card.style.display = name.toUpperCase().indexOf(filter) > -1 ? '' : 'none';
-            });
+        // --- AUTHENTICATION STATE & MOCK DATABASE ---
+        const USER_KEY = 'arcade_users';
+        const STATE_KEY = 'arcade_logged_in';
+        
+        const getStoredUsers = () => JSON.parse(localStorage.getItem(USER_KEY)) || [];
+        const setStoredUsers = (users) => localStorage.setItem(USER_KEY, JSON.stringify(users));
+
+        // --- GAME LIST (UPDATED WITH CATEGORY) ---
+        const gameList = [
+            { id: 1, name: "Candy Crush", icon: "🍬", description: "Match colorful candies!", path: "01-Candy-Crush-Game/index.html", category: "Puzzle" },
+            { id: 2, name: "Archery Game", icon: "🏹", description: "Hit the target!", path: "02-Archery-Game/index.html", category: "Action" },
+            { id: 3, name: "Speed Typing", icon: "⌨️", description: "Test your typing speed", path: "03-Speed-Typing-Game/index.html", category: "Typing" },
+            { id: 4, name: "Breakout", icon: "🧱", description: "Break all the bricks", path: "04-Breakout-Game/index.html", category: "Arcade" },
+            { id: 5, name: "Minesweeper", icon: "💣", description: "Find all the mines", path: "05-Minesweeper-Game/index.html", category: "Puzzle" },
+            { id: 6, name: "Tower Blocks", icon: "🏗️", description: "Stack blocks high!", path: "06-Tower-Blocks/index.html", category: "Puzzle" },
+            { id: 7, name: "Ping Pong", icon: "🏓", description: "Classic paddle game", path: "07-Ping-Pong-Game/index.html", category: "Arcade" },
+            { id: 8, name: "Tetris", icon: "🎮", description: "Stack the blocks", path: "08-Tetris-Game/index.html", category: "Puzzle" },
+            { id: 9, name: "Tilting Maze", icon: "🌀", description: "Navigate the maze", path: "09-Tilting-Maze-Game/index.html", category: "Logic" },
+            { id: 10, name: "Memory Card", icon: "🎴", description: "Match the pairs", path: "10-Memory-Card-Game/index.html", category: "Puzzle" },
+            { id: 11, name: "Rock Paper Scissors", icon: "✊", description: "Challenge the computer", path: "11-Rock-Paper-Scissors/index.html", category: "Logic" },
+            { id: 12, name: "Number Guessing", icon: "🔢", description: "Guess the number", path: "12-Type-Number-Guessing-Game/index.html", category: "Logic" },
+            { id: 13, name: "Tic Tac Toe", icon: "❌", description: "Beat your opponent", path: "13-Tic-Tac-Toe/index.html", category: "Logic" },
+            { id: 14, name: "Snake Game", icon: "🐍", description: "Classic snake adventure", path: "14-Snake-Game/index.html", category: "Arcade" },
+            { id: 15, name: "Connect Four", icon: "🔴", description: "Line up four pieces", path: "15-Connect-Four-Game/index.html", category: "Logic" },
+            { id: 16, name: "Insect Catch", icon: "🦋", description: "Catch the insects!", path: "16-Insect-Catch-Game/index.html", category: "Action" },
+            { id: 17, name: "Typing Game", icon: "⌨️", description: "Type fast and accurate", path: "17-Typing-Game/index.html", category: "Typing" },
+            { id: 18, name: "Hangman", icon: "🔤", description: "Guess the word", path: "18-Hangman-Game/index.html", category: "Puzzle" },
+            { id: 19, name: "Flappy Bird", icon: "🐦", description: "Tap to fly!", path: "19-Flappy-Bird-Game/index.html", category: "Arcade" },
+            { id: 20, name: "Crossy Road", icon: "🐔", description: "Cross the road safely", path: "20-Crossy-Road-Game/index.html", category: "Arcade" },
+            { id: 21, name: "2048 Game", icon: "🔢", description: "Merge to 2048!", path: "21-2048-Game/index.html", category: "Puzzle" },
+            { id: 22, name: "Dice Roll Simulator", icon: "🎲", description: "Roll the dice", path: "22-Dice-Roll-Simulator/index.html", category: "Logic" },
+            { id: 23, name: "Shape Clicker", icon: "🔷", description: "Click the shapes!", path: "23-Shape-Clicker-Game/index.html", category: "Action" },
+            { id: 24, name: "Typing Game 2", icon: "⌨️", description: "Another typing challenge", path: "24-Typing-Game/index.html", category: "Typing" },
+            { id: 25, name: "Speak Number Guessing", icon: "🎤", description: "Voice-based game", path: "25-Speak-Number-Guessing-Game/index.html", category: "Logic" },
+            { id: 26, name: "Fruit Slicer", icon: "🍎", description: "Slice the fruits!", path: "26-Fruit-Slicer-Game/index.html", category: "Action" },
+            { id: 27, name: "Quiz Game", icon: "❓", description: "Test your knowledge", path: "27-Quiz-Game/index.html", category: "Logic" },
+            { id: 28, name: "Emoji Catcher", icon: "😊", description: "Catch the emojis!", path: "28-Emoji-Catcher-Game/index.html", category: "Action" },
+            { id: 29, name: "Whack A Mole", icon: "🔨", description: "Hit the moles!", path: "29-Whack-A-Mole-Game/index.html", category: "Action" },
+            { id: 30, name: "Simon Says", icon: "🎵", description: "Memory pattern game", path: "30-Simon-Says-Game/index.html", category: "Puzzle" },
+        ];
+        
+        // Extract all unique categories
+        const categories = [...new Set(gameList.map(game => game.category))];
+
+        // --- GAME ARCADE RENDERING FUNCTIONS ---
+        const gamesGrid = document.getElementById('gamesGrid');
+
+        function createGameCardHTML(game) {
+            // Using Template Literals for cleaner HTML generation
+            return `
+                <div class="game-card" data-name="${game.name}" data-category="${game.category}">
+                    <div class="game-icon">${game.icon}</div>
+                    <h3>${game.name}</h3>
+                    <p>${game.description}</p>
+                    <a href="${game.path}" class="play-btn">Play Now</a>
+                </div>
+            `;
         }
-        document.querySelectorAll('.game-card').forEach(card => {
-            card.addEventListener('click', function(e) {
-                if (e.target.className !== 'play-btn') {
-                    this.querySelector('.play-btn').click();
+
+        // Consolidated function for loading and filtering
+        function loadGames(filterCategory = 'All') {
+            gamesGrid.innerHTML = '';
+            
+            const filteredList = (filterCategory === 'All') 
+                ? gameList 
+                : gameList.filter(game => game.category === filterCategory);
+
+            filteredList.forEach(game => { gamesGrid.innerHTML += createGameCardHTML(game); });
+            
+            // Re-apply click listeners
+            document.querySelectorAll('.game-card').forEach(card => {
+                card.addEventListener('click', function(e) {
+                    if (e.target.className !== 'play-btn') {
+                        this.querySelector('.play-btn').click();
+                    }
+                });
+            });
+            
+            // Highlight the active filter button
+            document.querySelectorAll('#filterButtons button').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.innerText === filterCategory || (filterCategory === 'All' && btn.innerText === 'All')) {
+                    btn.classList.add('active');
                 }
             });
+        }
+        
+        // NEW FUNCTION: Renders filter buttons
+        function renderFilterButtons() {
+            const container = document.getElementById('filterButtons');
+            // Add 'All' button first
+            let html = `<button class="active" onclick="loadGames('All')">All</button>`;
+            
+            categories.forEach(category => {
+                html += `<button onclick="loadGames('${category}')">${category}</button>`;
+            });
+            container.innerHTML = html;
+        }
+
+        // Updated Search Function (Now uses the category filter system)
+        function searchGames(searchTerm) {
+            const filter = searchTerm.toUpperCase();
+            
+            const filteredList = gameList.filter(game => 
+                game.name.toUpperCase().includes(filter) || 
+                game.description.toUpperCase().includes(filter)
+            );
+
+            gamesGrid.innerHTML = '';
+            filteredList.forEach(game => { gamesGrid.innerHTML += createGameCardHTML(game); });
+            
+            // Disable active filter button when searching
+            document.querySelectorAll('#filterButtons button').forEach(btn => btn.classList.remove('active'));
+        }
+        
+        // --- AUTHENTICATION FUNCTIONS (Existing) ---
+        const authContainer = document.getElementById('authContainer');
+        const authOverlay = document.getElementById('authOverlay');
+        const appContent = document.getElementById('app');
+        
+        function checkLoginState() {
+            const user = localStorage.getItem(STATE_KEY);
+            if (user) {
+                // User is logged in
+                renderFilterButtons(); // RENDER FILTERS ON LOGIN
+                loadGames('All');
+                appContent.style.display = 'block';
+                authOverlay.style.display = 'none';
+                document.getElementById('welcomeUser').innerText = `Welcome, ${user}! Choose from 30 awesome games to play!`;
+            } else {
+                // User is not logged in
+                appContent.style.display = 'none';
+                authOverlay.style.display = 'flex';
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem(STATE_KEY);
+            alert("You have been logged out.");
+            checkLoginState();
+        }
+        
+        document.getElementById('registerToggle').addEventListener('click', () => { authContainer.classList.add("active"); });
+        document.getElementById('loginToggle').addEventListener('click', () => { authContainer.classList.remove("active"); });
+
+        document.getElementById('registerForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('regName').value;
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPass').value;
+            const messageDiv = document.getElementById('regMessage');
+
+            let users = getStoredUsers();
+            if (users.some(u => u.email === email)) {
+                messageDiv.innerText = 'Error: Account already exists.';
+                return;
+            }
+
+            users.push({ name, email, password });
+            setStoredUsers(users);
+            messageDiv.style.color = 'green';
+            messageDiv.innerText = 'Registration successful! Please Sign In.';
+            authContainer.classList.remove("active"); 
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPass').value;
+            const messageDiv = document.getElementById('loginMessage');
+            
+            const users = getStoredUsers();
+            const user = users.find(u => u.email === email && u.password === password);
+
+            if (user) {
+                localStorage.setItem(STATE_KEY, user.name);
+                messageDiv.style.color = 'green';
+                messageDiv.innerText = 'Success! Loading arcade...';
+                
+                setTimeout(() => { checkLoginState(); }, 500);
+
+            } else {
+                messageDiv.style.color = 'red';
+                messageDiv.innerText = 'Invalid email or password.';
+            }
         });
     </script>
 </body>
