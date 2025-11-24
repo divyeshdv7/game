@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Payment Gateway | ARCADE</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" 
+            xintegrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKx3K9R/TjWfX2tW3bK7+Y+tA==" 
+            crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <style>
+        /* Shared Styles from Arcade Theme */
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap');
+
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 5px var(--glow-color), 0 0 0 rgba(255, 255, 255, 0); }
+            50% { box-shadow: 0 0 10px var(--glow-color), 0 0 15px rgba(255, 255, 255, 0.4); }
+            100% { box-shadow: 0 0 5px var(--glow-color), 0 0 0 rgba(255, 255, 255, 0); }
+        }
+        @keyframes rotate-coin {
+            from { transform: rotateY(0deg); }
+            to { transform: rotateY(360deg); }
+        }
+        @keyframes color-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        :root {
+            --background-base: #1a202c;
+            --background-animation-gradient: linear-gradient(90deg, #FF6B6B, #4ECDC4, #45B7D1, #FF6B6B);
+            --background-blend-gradient: linear-gradient(135deg, rgba(30, 40, 50, 0.9) 0%, rgba(50, 60, 70, 0.9) 100%);
+            --card-background: #ffffff;
+            --card-text-color: #333333;
+            --card-desc-color: #666666;
+            --input-bg: #f0f0f0;
+            --glow-color: #667eea;
+            --header-text-color: #ffffff;
+            --success-color: #4CAF50;
+            --cancel-color: #e91e63;
+        }
+
+        .dark-mode {
+            --background-base: #0f1418;
+            --background-animation-gradient: linear-gradient(90deg, #1c1f24, #2c3648, #1c1f24);
+            --background-blend-gradient: linear-gradient(135deg, rgba(15, 20, 25, 0.95) 0%, rgba(25, 30, 35, 0.95) 100%);
+            --card-background: #1f2838;
+            --card-text-color: #e0e0e0;
+            --card-desc-color: #a0a8b4;
+            --input-bg: #1f2838;
+            --input-text: #e0e0e0;
+            --success-color: #00e676;
+            --cancel-color: #ff3d00;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--background-base);
+            background-image: var(--background-animation-gradient), var(--background-blend-gradient);
+            background-size: 600% 600%, cover;
+            background-blend-mode: normal, normal;
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--card-text-color);
+            animation: color-shift 15s ease infinite;
+        }
+
+        #payment-container {
+            background: var(--card-background);
+            border-radius: 15px;
+            padding: 40px;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            transition: background 0.3s, color 0.3s;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            color: var(--card-text-color);
+            margin-bottom: 5px;
+        }
+        header p {
+            color: var(--card-desc-color);
+            margin-bottom: 30px;
+            font-size: 0.9rem;
+        }
+        
+        /* --- SECURITY & BRANDING AREA --- */
+        .secure-banner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--card-desc-color);
+        }
+        .secure-banner i {
+            color: var(--success-color);
+            margin-right: 5px;
+        }
+        .payment-logos i {
+            font-size: 1.8rem;
+            margin-left: 8px;
+            opacity: 0.6;
+        }
+        .fa-cc-visa { color: #1a4d95; }
+        .fa-cc-mastercard { color: #eb001b; }
+        .fa-cc-amex { color: #007bc1; }
+
+        .purchase-summary {
+            background: var(--input-bg);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border: 1px solid var(--card-desc-color);
+        }
+        .purchase-summary div {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 500;
+            margin-bottom: 5px;
+            font-size: 1rem;
+            color: var(--card-text-color);
+        }
+        .total-row {
+            font-size: 1.3rem !important;
+            font-weight: 700 !important;
+            border-top: 1px solid var(--card-desc-color);
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+        .total-row strong {
+            color: var(--success-color);
+        }
+
+        /* Payment Forms/Actions */
+        .payment-form input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid var(--sidebar-border);
+            border-radius: 8px;
+            background: var(--input-bg);
+            color: var(--card-text-color);
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+        .payment-form input:focus {
+            border-color: var(--glow-color);
+            outline: none;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+        .input-group input {
+            flex-grow: 1;
+        }
+        
+        .checkout-btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 50px;
+            background: var(--success-color);
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s, opacity 0.3s;
+            margin-top: 10px;
+        }
+        .checkout-btn:hover:not(:disabled) {
+            opacity: 0.9;
+        }
+        .checkout-btn:disabled {
+            background: #999;
+            cursor: not-allowed;
+        }
+
+        /* --- SECURE PAYMENT FIELD STYLING (New) --- */
+        .secure-card-field {
+            background: var(--input-bg);
+            border: 1px solid var(--sidebar-border);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 15px;
+            text-align: left;
+            position: relative;
+            font-size: 1rem;
+            color: var(--card-text-color);
+            transition: border-color 0.2s;
+        }
+        .secure-card-field:focus-within {
+             border-color: var(--glow-color);
+        }
+        .secure-card-field-placeholder {
+            color: var(--card-desc-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .secure-card-field-placeholder span {
+            font-family: monospace;
+            font-size: 1.1rem;
+        }
+        
+        /* Processing View Styles */
+        #processingView {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 250px;
+            text-align: center;
+        }
+        .spinner-icon {
+            font-size: 3rem;
+            color: #2196F3;
+            margin-bottom: 20px;
+        }
+        #processingTitle {
+            font-size: 1.5rem;
+            color: var(--card-text-color);
+            margin-bottom: 10px;
+        }
+        #processingMessage {
+            font-size: 0.95rem;
+            color: var(--card-desc-color);
+            min-height: 20px;
+        }
+
+        /* Result View Styles */
+        #resultView {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 250px;
+            text-align: center;
+        }
+        #resultView h3 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+        #resultView p {
+            margin-bottom: 20px;
+            color: var(--card-desc-color);
+        }
+        #resultView .icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+        .success .icon { color: var(--success-color); }
+        .fail .icon { color: var(--cancel-color); }
+        
+        .return-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            background: var(--glow-color);
+            color: white;
+        }
+        .return-btn:hover { opacity: 0.9; }
+
+        /* Toast Container */
+        #toastContainer {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 10002; 
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast {
+            min-width: 250px;
+            padding: 15px;
+            background-color: var(--card-background);
+            color: var(--card-text-color);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            opacity: 0;
+            transition: opacity 0.5s, transform 0.5s;
+            transform: translateX(100%);
+            display: flex;
+            align-items: center;
+            font-weight: 500;
+        }
+        .toast.show { opacity: 1; transform: translateX(0); }
+        .toast i { margin-right: 10px; font-size: 1.2rem; }
+        .toast.success { border-left: 5px solid var(--success-color); }
+        .toast.error { border-left: 5px solid var(--cancel-color); }
+        .toast.info { border-left: 5px solid #2196F3; }
+    </style>
+</head>
+<body>
+
+    <div id="payment-container">
+        
+        <!-- Default Checkout View -->
+        <div id="checkoutView">
+            <header>
+                <h1>Secure Checkout</h1>
+                <p>Purchasing digital currency for Arcade Supreme.</p>
+            </header>
+
+            <!-- Payment Logos and Security Badge -->
+            <div class="secure-banner">
+                <span style="font-weight: 600;"><i class="fas fa-lock"></i> Secured by ArcPay</span>
+                <div class="payment-logos">
+                    <i class="fab fa-cc-visa"></i>
+                    <i class="fab fa-cc-mastercard"></i>
+                    <i class="fab fa-cc-amex"></i>
+                </div>
+            </div>
+
+            <!-- SECURITY DISCLAIMER -->
+            <div style="background-color: rgba(255, 193, 7, 0.1); border: 1px solid #ffc107; padding: 10px; border-radius: 8px; margin-bottom: 20px;">
+                <p style="font-size: 0.8rem; color: var(--card-text-color); margin: 0; text-align: left; font-weight: 600;">
+                    <i class="fas fa-info-circle"></i> This is a simulated payment flow. No real card details are collected or stored.
+                </p>
+            </div>
+            
+
+            <div class="purchase-summary">
+                <div style="font-weight: 700; font-size: 1.1rem; margin-bottom: 10px;">
+                    Order Details:
+                </div>
+                <div>
+                    <span>Package:</span>
+                    <span id="summaryPackageName">Arcade Chest</span>
+                </div>
+                <div>
+                    <span>Coins to be Credited:</span>
+                    <span id="summaryCoinAmount">0 <i class="fas fa-coins"></i></span>
+                </div>
+                <div class="total-row">
+                    <span>Total Amount Due:</span>
+                    <strong id="summaryPrice">$0.00</strong>
+                </div>
+            </div>
+
+            <form id="paymentForm" class="payment-form">
+                
+                <!-- This INPUT simulates the customer entering their name for billing -->
+                <input type="text" id="cardName" placeholder="Name on Card" required>
+
+                <!-- This DIV simulates a SECURE, hosted payment field (like Stripe Elements or Google Pay) -->
+                <label for="secureCardField" style="font-size: 0.85rem; color: var(--card-desc-color); display: block; text-align: left; margin-bottom: 5px;">Payment Details (Simulated Secure Field)</label>
+                <div id="secureCardField" class="secure-card-field">
+                    <div class="secure-card-field-placeholder">
+                        <input type="tel" id="cardNumber" inputmode="numeric" placeholder="Card Number (XXXX-XXXX-XXXX-XXXX)" required maxlength="19" oninput="formatCardNumber(this)" style="padding: 0; margin: 0; border: none; background: transparent; color: var(--card-text-color); width: 60%;"/>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <input type="tel" id="expiryDate" inputmode="numeric" placeholder="MM/YY" required maxlength="5" oninput="formatExpiry(this)" style="padding: 0; margin: 0; border: none; background: transparent; color: var(--card-text-color); width: 50px; text-align: center;"/>
+                            <input type="password" id="cvv" inputmode="numeric" placeholder="CVV" required maxlength="4" style="padding: 0; margin: 0; border: none; background: transparent; color: var(--card-text-color); width: 40px; text-align: center;"/>
+                        </div>
+                    </div>
+                </div>
+
+                <input type="tel" id="zipCode" inputmode="numeric" placeholder="Billing Zip Code" required maxlength="10">
+                <button type="submit" id="payButton" class="checkout-btn">
+                    Pay <span id="payButtonPrice">$0.00</span>
+                </button>
+                <button type="button" class="checkout-btn" style="background: var(--cancel-color); margin-top: 10px;" onclick="returnToCoinVault()">
+                    Cancel & Return
+                </button>
+            </form>
+        </div>
+
+        <!-- Processing View -->
+        <div id="processingView">
+            <div class="spinner-icon"><i class="fas fa-spinner fa-spin"></i></div>
+            <h3 id="processingTitle">Processing Payment...</h3>
+            <p id="processingMessage">Establishing secure connection with payment gateway (1/5)</p>
+            <p id="processingUser" style="font-size: 0.8rem; color: var(--card-desc-color); margin-top: 10px;"></p>
+        </div>
+
+        <!-- Result View (Success/Failure) -->
+        <div id="resultView" class="success">
+            <div class="icon"></div>
+            <h3 id="resultTitle">Purchase Complete!</h3>
+            <p id="resultMessage">Your transaction was successful.</p>
+            <button class="return-btn" onclick="returnToCoinVault()">Return to Arcade</button>
+        </div>
+
+    </div>
+    
+    <div id="toastContainer"></div>
+
+    <script>
+        // --- CONSTANTS ---
+        const USER_KEY = 'arcade_users';
+        const PURCHASE_DATA_KEY = 'arcade_pending_purchase';
+        const EMAIL_KEY = 'arcade_current_email';
+        const DARK_MODE_KEY = 'arcade_dark_mode';
+        
+        // --- GLOBAL STATE & DATA ---
+        let purchaseData = null;
+
+        // --- DOM ELEMENTS ---
+        const paymentContainer = document.getElementById('payment-container');
+        const checkoutView = document.getElementById('checkoutView');
+        const processingView = document.getElementById('processingView');
+        const resultView = document.getElementById('resultView');
+        const paymentForm = document.getElementById('paymentForm');
+
+        // Summary Elements
+        const summaryPackageName = document.getElementById('summaryPackageName');
+        const summaryCoinAmount = document.getElementById('summaryCoinAmount');
+        const summaryPrice = document.getElementById('summaryPrice');
+        const payButton = document.getElementById('payButton');
+        const payButtonPrice = document.getElementById('payButtonPrice');
+
+        // Processing Elements
+        const processingTitle = document.getElementById('processingTitle');
+        const processingMessage = document.getElementById('processingMessage');
+        const processingUser = document.getElementById('processingUser');
+
+        // Result Elements
+        const resultTitle = document.getElementById('resultTitle');
+        const resultMessage = document.getElementById('resultMessage');
+        const resultIcon = resultView.querySelector('.icon');
+
+        const toastContainer = document.getElementById('toastContainer');
+        
+        // --- UTILITY FUNCTIONS ---
+        const getStoredUsers = () => JSON.parse(localStorage.getItem(USER_KEY)) || [];
+        const setStoredUsers = (users) => localStorage.setItem(USER_KEY, JSON.stringify(users));
+
+        function showToast(message, type = 'info', duration = 3000) {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            let icon = '';
+            if (type === 'success') icon = '<i class="fas fa-check-circle"></i>';
+            else if (type === 'error') icon = '<i class="fas fa-times-circle"></i>';
+            else icon = '<i class="fas fa-info-circle"></i>';
+
+            toast.innerHTML = `${icon} ${message}`;
+            toastContainer.appendChild(toast);
+
+            setTimeout(() => { toast.classList.add('show'); }, 10); 
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => { toast.remove(); }, 500);
+            }, duration);
+        }
+
+        function getTransactionLogFunction(userEmail) {
+            return (type, amount, description) => {
+                const users = getStoredUsers();
+                const userIndex = users.findIndex(u => u.email === userEmail);
+                if (userIndex !== -1) {
+                    if (!users[userIndex].transactions) {
+                        users[userIndex].transactions = [];
+                    }
+                    users[userIndex].transactions.push({
+                        type: type,
+                        amount: amount,
+                        timestamp: Date.now(),
+                        description: description
+                    });
+                    setStoredUsers(users);
+                }
+            };
+        }
+
+        window.returnToCoinVault = function() {
+            // Clean up the temporary purchase data
+            localStorage.removeItem(PURCHASE_DATA_KEY);
+            window.location.href = 'coins.html';
+        }
+
+        // --- INPUT FORMATTING (Kept for simulation within the secure field placeholder) ---
+        
+        // Format card number input: XXXX-XXXX-XXXX-XXXX
+        window.formatCardNumber = function(input) {
+            let value = input.value.replace(/\D/g, ''); // Remove non-digits
+            value = value.substring(0, 16); // Limit to 16 digits
+            
+            // Insert hyphen every 4 digits
+            const formatted = value.replace(/(\d{4})(?=\d)/g, '$1-');
+            
+            input.value = formatted;
+        }
+
+        // Format expiry date input: MM/YY
+        window.formatExpiry = function(input) {
+            let value = input.value.replace(/\D/g, ''); // Remove non-digits
+            
+            // Limit to 4 digits
+            if (value.length > 4) {
+                value = value.substring(0, 4);
+            }
+
+            // Insert slash after the first 2 digits
+            let formatted = value;
+            if (value.length > 2) {
+                formatted = value.substring(0, 2) + '/' + value.substring(2, 4);
+            }
+            
+            input.value = formatted;
+        }
+
+        // --- PAGE VIEWS ---
+
+        function showCheckoutView() {
+            checkoutView.style.display = 'block';
+            processingView.style.display = 'none';
+            resultView.style.display = 'none';
+        }
+
+        function showProcessingView() {
+            checkoutView.style.display = 'none';
+            processingView.style.display = 'flex';
+            resultView.style.display = 'none';
+        }
+
+        function showResultView(isSuccess, message, title) {
+            checkoutView.style.display = 'none';
+            processingView.style.display = 'none';
+            resultView.style.display = 'flex';
+            
+            resultView.className = isSuccess ? 'success' : 'fail';
+            resultIcon.innerHTML = isSuccess ? '<i class="fas fa-check-circle"></i>' : '<i class="fas fa-times-circle"></i>';
+            resultTitle.textContent = title || (isSuccess ? 'Purchase Complete!' : 'Payment Failed');
+            resultMessage.textContent = message;
+        }
+        
+        // --- PAYMENT LOGIC (Highly Realistic Simulation) ---
+
+        function handlePaymentSubmission(e) {
+            e.preventDefault();
+
+            // 1. Final Validation Check on the simulated fields
+            const cardNumberInput = document.getElementById('cardNumber');
+            const cardNumber = cardNumberInput.value.replace(/-/g, '').trim();
+            
+            if (cardNumber.length !== 16 || isNaN(cardNumber)) {
+                showToast("Invalid card number. Please check the 16 digits.", 'error', 4000);
+                cardNumberInput.focus();
+                return;
+            }
+            
+            const expiryDate = document.getElementById('expiryDate').value.trim();
+            if (!expiryDate || expiryDate.length !== 5 || expiryDate.indexOf('/') !== 2) {
+                 showToast("Invalid expiry date format (MM/YY).", 'error', 4000);
+                 document.getElementById('expiryDate').focus();
+                 return;
+            }
+
+            /* --- REALISTIC INTEGRATION POINT ---
+            In a real application:
+            1. Submit card data (via secure client library) to Stripe/PayPal to get a 'Token'.
+            2. Send the 'Token' to your server.
+            3. Server uses the 'Token' to charge the card.
+            The below simulation mimics the processing delay of steps 2 & 3.
+            */
+
+            const isFailure = Math.random() < 0.1; // 10% chance of failure for realism
+
+            showProcessingView();
+            
+            const logTransaction = getTransactionLogFunction(purchaseData.userEmail);
+
+            const processingMessages = [
+                { title: "Secure Tokenization...", message: "Obtaining single-use payment token (1/5)", delay: 1500 }, // New initial step
+                { title: "Contacting Merchant Server...", message: "Submitting payment token for charge (2/5)", delay: 1800 },
+                { title: "Bank Authorization...", message: "Awaiting approval from issuing bank (3/5)", delay: 2500 },
+                { title: "Gateway Final Check...", message: "Verifying charge status (4/5)", delay: 1000 },
+                { title: "Processing Complete...", message: "Finalizing and crediting coins (5/5)", delay: 500 },
+            ];
+            
+            let step = 0;
+            
+            function processStep() {
+                if (step >= processingMessages.length) {
+                    
+                    if (isFailure) {
+                        // --- FAILED SIMULATION ---
+                        showResultView(false, "The bank declined the transaction. Please check your card details or try a different method.", "Payment Declined!");
+                        // Log failure without crediting coins
+                        logTransaction('FAIL', 0, `Failed Purchase: ${purchaseData.packageName} (${purchaseData.price})`);
+                        return;
+                    }
+
+                    // --- SUCCESS SIMULATION ---
+                    const amount = purchaseData.amount;
+                    const name = purchaseData.packageName;
+                    const price = purchaseData.price;
+                    const userEmail = purchaseData.userEmail;
+                    const userName = purchaseData.userName;
+
+                    // 1. Credit the coins to the user
+                    const users = getStoredUsers();
+                    const userIndex = users.findIndex(u => u.email === userEmail);
+                    if (userIndex !== -1) {
+                        users[userIndex].coins = (users[userIndex].coins || 0) + amount;
+                        setStoredUsers(users);
+                        
+                        // 2. Log the successful transaction
+                        logTransaction('PURCHASE', amount, `${name} (${price})`);
+                        
+                        // 3. Show Success Result
+                        showResultView(true, `Your purchase of ${amount} coins was successful!`, "Transaction Approved!");
+                        showToast(`Success! ${amount} coins credited.`, 'success', 4000);
+                        
+                    } else {
+                        // Edge case: user profile disappeared
+                        showResultView(false, "An internal error occurred. Your card was not charged.", "Internal Error");
+                    }
+                    
+                    return;
+                }
+
+                const currentStep = processingMessages[step];
+                
+                // If it's the final success step, but we determined it should fail, we stop here.
+                if (isFailure && step === processingMessages.length - 1) {
+                    currentStep.title = "Authorization Failed";
+                    currentStep.message = "Transaction declined by issuing bank.";
+                    currentStep.delay = 1000;
+                }
+
+                // Update processing display
+                processingTitle.textContent = currentStep.title;
+                processingMessage.textContent = currentStep.message;
+                
+                step++;
+                
+                // Continue to the next step after the specified delay
+                setTimeout(processStep, currentStep.delay);
+            }
+
+            processStep(); // Start the sequence
+        }
+
+        // --- INITIALIZATION ---
+
+        function initializePurchasePage() {
+            // 1. Check Dark Mode
+            if (localStorage.getItem(DARK_MODE_KEY) === 'true') {
+                document.body.classList.add('dark-mode');
+            }
+
+            // 2. Load Purchase Data
+            const dataString = localStorage.getItem(PURCHASE_DATA_KEY);
+            if (!dataString) {
+                showResultView(false, "No valid purchase data found. Returning to Coin Vault.", "Error");
+                showToast("Invalid checkout session.", 'error', 5000);
+                setTimeout(returnToCoinVault, 2000);
+                return;
+            }
+            
+            try {
+                purchaseData = JSON.parse(dataString);
+                
+                // 3. Populate Checkout Summary
+                summaryPackageName.textContent = purchaseData.packageName;
+                summaryCoinAmount.innerHTML = `${purchaseData.amount} <i class="fas fa-coins"></i>`;
+                summaryPrice.textContent = purchaseData.price;
+                payButtonPrice.textContent = purchaseData.price;
+                
+                // 4. Set Processing User Info
+                processingUser.textContent = `For: ${purchaseData.userName} (${purchaseData.userEmail})`;
+
+                // 5. Setup event listener for payment form submission
+                paymentForm.addEventListener('submit', handlePaymentSubmission);
+
+                showCheckoutView();
+
+            } catch (e) {
+                console.error("Failed to parse purchase data:", e);
+                showResultView(false, "Corrupted purchase data. Returning to Coin Vault.", "Error");
+                setTimeout(returnToCoinVault, 2000);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initializePurchasePage);
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arcade Supreme | My Profile</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" 
+          integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKx3K9R/TjWfX2tW3bK7+Y+tA==" 
+          crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap');
+
+        /* --- DYNAMIC LIGHTING / GLOW EFFECT --- */
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 5px var(--glow-color), 0 0 0 rgba(255, 255, 255, 0); }
+            50% { box-shadow: 0 0 10px var(--glow-color), 0 0 15px rgba(255, 255, 255, 0.4); }
+            100% { box-shadow: 0 0 5px var(--glow-color), 0 0 0 rgba(255, 255, 255, 0); }
+        }
+
+        /* --- CSS VARIABLES FOR THEME --- */
+        :root {
+            --body-background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><path fill="%238892B0" fill-opacity="0.1" d="M100 97.2L68.7 65.9c.7-.9 1.4-1.8 2.1-2.8l27.1 27.1L100 97.2zM0 2.8L31.3 34.1c-.7.9-1.4 1.8-2.1 2.8L1.7 9.8 0 2.8zM2.8 0L34.1 31.3c.9-.7 1.8-1.4 2.8-2.1L9.8 1.7 2.8 0zM97.2 100L65.9 68.7c.9.7 1.8 1.4 2.8 2.1L90.2 98.3 97.2 100zM0 97.2L31.3 65.9c-.7-.9-1.4-1.8-2.1-2.8L1.7 9.8 0 2.8z" /></svg>'); 
+            --background-overlay: linear-gradient(135deg, rgba(30, 40, 50, 0.9) 0%, rgba(50, 60, 70, 0.9) 100%);
+            --header-text-color: white;
+            --card-background: rgba(255, 255, 255, 0.95);
+            --card-text-color: #333;
+            --card-desc-color: #666;
+            --search-shadow: rgba(0,0,0,0.3);
+            --filter-bg: rgba(255, 255, 255, 0.2);
+            --filter-border: rgba(255, 255, 255, 0.4);
+            --filter-hover-bg: rgba(255, 255, 255, 0.9);
+            --filter-hover-color: #764ba2;
+            --transition-speed: 0.3s;
+            --play-button-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --sidebar-border: #eee;
+            --glow-color: #667eea; 
+            --profile-bg: #8c9eff;
+        }
+
+        .dark-mode {
+            --body-background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><path fill="%234A5568" fill-opacity="0.15" d="M100 97.2L68.7 65.9c.7-.9 1.4-1.8 2.1-2.8l27.1 27.1L100 97.2zM0 2.8L31.3 34.1c-.7.9-1.4 1.8-2.1 2.8L1.7 9.8 0 2.8zM2.8 0L34.1 31.3c.9-.7 1.8-1.4 2.8-2.1L9.8 1.7 2.8 0zM97.2 100L65.9 68.7c.9.7 1.8 1.4 2.8 2.1L90.2 98.3 97.2 100zM0 97.2L31.3 65.9c-.7-.9-1.4-1.8-2.1-2.8L1.7 9.8 0 2.8z" /></svg>');
+            --background-overlay: linear-gradient(135deg, rgba(15, 20, 25, 0.95) 0%, rgba(25, 30, 35, 0.95) 100%);
+            --header-text-color: #e0e0e0;
+            --card-background: #2c3648;
+            --card-text-color: #e0e0e0;
+            --card-desc-color: #a0a8b4;
+            --search-shadow: rgba(0,0,0,0.6);
+            --filter-bg: rgba(44, 54, 72, 0.5);
+            --filter-hover-bg: #404c5e;
+            --filter-hover-color: white;
+            --play-button-bg: linear-gradient(135deg, #3a475a 0%, #525f7a 100%);
+            --sidebar-border: #444;
+            --glow-color: #a0f0ff; 
+            --profile-bg: #3a475a;
+        }
+
+        /* Global & Layout Styles */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Montserrat', sans-serif; 
+            background-color: #1a202c; 
+            background-image: var(--body-background-image), var(--background-overlay);
+            background-size: 100px 100px, cover; 
+            background-blend-mode: overlay, normal; 
+            background-attachment: fixed; 
+            min-height: 100vh; 
+            padding: 20px; 
+            transition: background var(--transition-speed);
+        }
+        #app { 
+            max-width: 900px; 
+            margin: 0 auto; 
+            padding: 20px;
+            text-align: center;
+        }
+
+        /* Profile Header & Navigation */
+        .profile-header {
+            color: var(--header-text-color); 
+            margin-bottom: 30px; 
+            padding: 20px; 
+        }
+        .profile-header h1 {
+            font-size: 2.5rem; 
+            margin-bottom: 5px; 
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .profile-header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        .profile-nav button, .profile-nav a {
+            background-color: var(--filter-bg);
+            color: var(--header-text-color);
+            border: 1px solid var(--filter-border);
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 10px 5px 30px;
+            transition: background-color var(--transition-speed), transform 0.1s, color var(--transition-speed);
+            min-width: 150px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .profile-nav button:hover, .profile-nav button.active {
+            background-color: var(--filter-hover-bg);
+            color: var(--filter-hover-color);
+            transform: scale(1.05);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        /* Profile/Leaderboard Content Area */
+        #profileContent h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: var(--header-text-color);
+            text-align: left;
+        }
+        .profile-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .profile-stat {
+            background: var(--card-background);
+            color: var(--card-text-color);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 10px var(--search-shadow);
+            text-align: left;
+        }
+        .profile-stat strong {
+            display: block;
+            font-size: 1.8rem;
+            color: #764ba2;
+            margin-bottom: 5px;
+        }
+        .profile-stat span {
+            font-size: 1rem;
+            color: var(--card-desc-color);
+            display: block;
+            margin-bottom: 10px;
+        }
+        
+        .profile-favorites-list, .leaderboard-list {
+            list-style: none;
+            padding: 0;
+            margin-top: 10px;
+        }
+        .profile-favorites-list li, .leaderboard-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid var(--sidebar-border);
+            color: var(--card-text-color);
+            font-size: 0.95rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .leaderboard-list li:last-child {
+            border-bottom: none;
+        }
+        .leaderboard-list li span {
+            font-weight: 700;
+            color: #ffc107;
+            font-size: 1rem;
+            margin-left: auto;
+        }
+        .play-btn { 
+            display: inline-block; 
+            padding: 10px 20px; 
+            background: var(--play-button-bg); 
+            color: white; 
+            text-decoration: none; 
+            border: none; 
+            border-radius: 50px; 
+            font-weight: 600; 
+            transition: transform 0.2s, box-shadow 0.2s; 
+            cursor: pointer; 
+        }
+        .play-btn:hover { 
+            transform: scale(1.05); 
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); 
+        }
+        .profile-link {
+            color: var(--header-text-color);
+            text-decoration: none;
+            font-size: 0.9rem;
+            opacity: 0.7;
+            margin-top: 20px;
+            display: inline-block;
+        }
+        .profile-link:hover {
+            opacity: 1;
+        }
+
+        /* Toast styles needed for coin purchase success/failure */
+        #toastContainer {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast {
+            min-width: 250px;
+            padding: 15px;
+            background-color: var(--card-background);
+            color: var(--card-text-color);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            opacity: 0;
+            transition: opacity 0.5s, transform 0.5s;
+            transform: translateX(100%);
+            display: flex;
+            align-items: center;
+            font-weight: 500;
+        }
+        .toast.show { opacity: 1; transform: translateX(0); }
+        .toast i { margin-right: 10px; font-size: 1.2rem; }
+        .toast.success { border-left: 5px solid #4CAF50; }
+        .toast.success i { color: #4CAF50; }
+        .toast.error { border-left: 5px solid #f44336; }
+        .toast.error i { color: #f44336; }
+        .toast.info { border-left: 5px solid #2196F3; }
+        .toast.info i { color: #2196F3; }
+    </style>
+</head>
+<body class="dark-mode">
+
+    <div id="app">
+        <div class="profile-header">
+            <h1>Arcade Supreme User Panel 👤</h1>
+            <p>Your stats, favorites, and the global leaderboard.</p>
+
+            <div class="profile-nav">
+                <button id="profileBtn" class="active" onclick="displayView('profile')">My Profile</button>
+                <button id="leaderboardBtn" onclick="displayView('leaderboard')">Coin Leaderboard</button>
+                <a href="index.html" class="play-btn" style="margin: 0 5px;"><i class="fas fa-home"></i> Back to Arcade</a>
+            </div>
+        </div>
+
+        <main id="profileContent">
+            <p style="color: var(--header-text-color); font-size: 1.2rem;">Loading profile data...</p>
+        </main>
+        
+        <a href="index.html" class="profile-link">← Return to the Game Arcade</a>
+    </div>
+    
+    <div id="toastContainer"></div>
+
+    <script>
+        // --- CONSTANTS AND MOCK DATABASE KEYS ---
+        const USER_KEY = 'arcade_users';
+        const STATE_KEY = 'arcade_logged_in';
+        const EMAIL_KEY = 'arcade_current_email';
+        const DARK_MODE_KEY = 'arcade_dark_mode';
+
+        // --- GLOBAL STATE ---
+        let currentUserEmail = localStorage.getItem(EMAIL_KEY) || ''; 
+        const profileContent = document.getElementById('profileContent');
+        const toastContainer = document.getElementById('toastContainer');
+        
+        // Minimal game list needed for rendering favorites
+        const gameList = [
+            { id: 1, name: "Candy Crush", icon: "🍬", category: "Puzzle", cost: 5 },
+            { id: 2, name: "Archery Game", icon: "🏹", category: "Action", cost: 10 },
+            { id: 3, name: "Speed Typing", icon: "⌨️", category: "Typing", cost: 5 },
+            { id: 4, name: "Breakout", icon: "🧱", category: "Arcade", cost: 15 },
+            { id: 5, name: "Minesweeper", icon: "💣", category: "Puzzle", cost: 5 },
+            { id: 6, name: "Tower Blocks", icon: "🏗️", category: "Puzzle", cost: 8 },
+            { id: 7, name: "Ping Pong", icon: "🏓", category: "Arcade", cost: 10 },
+            { id: 8, name: "Tetris", icon: "🎮", category: "Puzzle", cost: 5 },
+            { id: 9, name: "Tilting Maze", icon: "🌀", category: "Logic", cost: 12 },
+            { id: 10, name: "Memory Card", icon: "🎴", category: "Puzzle", cost: 5 },
+            { id: 11, name: "Rock Paper Scissors", icon: "✊", category: "Logic", cost: 2 },
+            { id: 12, name: "Number Guessing", icon: "🔢", category: "Logic", cost: 3 },
+            { id: 13, name: "Tic Tac Toe", icon: "❌", category: "Logic", cost: 5 },
+            { id: 14, name: "Snake Game", icon: "🐍", category: "Arcade", cost: 10 },
+            { id: 15, name: "Connect Four", icon: "🔴", category: "Logic", cost: 7 },
+            { id: 16, name: "Insect Catch", icon: "🦋", category: "Action", cost: 15 },
+            { id: 17, name: "Typing Game", icon: "⌨️", category: "Typing", cost: 5 },
+            { id: 18, name: "Hangman", icon: "🔤", category: "Puzzle", cost: 8 },
+            { id: 19, name: "Flappy Bird", icon: "🐦", category: "Arcade", cost: 12 },
+            { id: 20, name: "Crossy Road", icon: "🐔", category: "Arcade", cost: 10 },
+            { id: 21, name: "2048 Game", icon: "🔢", category: "Puzzle", cost: 5 },
+            { id: 22, name: "Dice Roll Simulator", icon: "🎲", category: "Logic", cost: 1 },
+            { id: 23, name: "Shape Clicker", icon: "🔷", category: "Action", cost: 8 },
+            { id: 24, name: "Typing Game 2", icon: "⌨️", category: "Typing", cost: 5 },
+            { id: 25, name: "Speak Number Guessing", icon: "🎤", category: "Logic", cost: 3 },
+            { id: 26, name: "Fruit Slicer", icon: "🍎", category: "Action", cost: 15 },
+            { id: 27, name: "Quiz Game", icon: "❓", category: "Logic", cost: 5 },
+            { id: 28, name: "Emoji Catcher", icon: "😊", category: "Action", cost: 10 },
+            { id: 29, name: "Whack A Mole", icon: "🔨", category: "Action", cost: 8 },
+            { id: 30, name: "Simon Says", icon: "🎵", category: "Puzzle", cost: 5 },
+        ];
+        
+        // Mock leaderboard data (also used in index.html)
+        const mockLeaderboard = [
+            { name: "Divyesh", coins: 5000 },
+            { name: "ArcadeKing", coins: 3500 },
+            { name: "PlayerOne", coins: 2100 },
+            { name: "Speedster", coins: 1500 },
+            { name: "CoinMaster", coins: 1000 },
+        ];
+
+
+        // --- UTILITY FUNCTIONS ---
+        const getStoredUsers = () => JSON.parse(localStorage.getItem(USER_KEY)) || [];
+        const setStoredUsers = (users) => localStorage.setItem(USER_KEY, JSON.stringify(users));
+        
+        // Toast Notification System
+        function showToast(message, type = 'info', duration = 3000) {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            let icon = '';
+            if (type === 'success') icon = '<i class="fas fa-check-circle"></i>';
+            else if (type === 'error') icon = '<i class="fas fa-times-circle"></i>';
+            else icon = '<i class="fas fa-info-circle"></i>';
+
+            toast.innerHTML = `${icon} ${message}`;
+            toastContainer.appendChild(toast);
+
+            setTimeout(() => { toast.classList.add('show'); }, 10); 
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => { toast.remove(); }, 500); 
+            }, duration);
+        }
+
+        // Dark Mode Logic
+        function applyDarkMode(isDark) {
+            document.body.classList.toggle('dark-mode', isDark);
+        }
+        function initializeDarkMode() {
+            const storedPreference = localStorage.getItem(DARK_MODE_KEY);
+            if (storedPreference === 'true') {
+                applyDarkMode(true);
+            }
+        }
+        
+        // --- VIEW FUNCTIONS ---
+
+        /** Renders the user's profile statistics and favorites. */
+        function viewProfile() {
+            if (!currentUserEmail) {
+                profileContent.innerHTML = '<h2><i class="fas fa-lock"></i> Access Denied</h2><p style="color: var(--card-text-color);">Please log in on the main page to view your profile.</p>';
+                return;
+            }
+
+            const users = getStoredUsers();
+            const user = users.find(u => u.email === currentUserEmail);
+            if (!user) {
+                profileContent.innerHTML = '<h2><i class="fas fa-exclamation-circle"></i> User Not Found</h2><p style="color: var(--card-text-color);">Could not retrieve user data.</p>';
+                return;
+            }
+
+            const totalPlayed = user.gamesPlayed || 0; 
+            const totalSpent = user.coinsSpent || 0; 
+            const favoriteGames = user.favorites ? gameList.filter(g => user.favorites.includes(g.id)) : [];
+            let favoritesHtml = '';
+
+            if (favoriteGames.length > 0) {
+                const listItems = favoriteGames.map(g => `<li>${g.icon} ${g.name} <span>${g.category}</span></li>`).join('');
+                favoritesHtml = `
+                    <div class="profile-stat" style="grid-column: 1 / -1;">
+                        <strong>${favoriteGames.length}</strong>
+                        <span>Favorite Games</span>
+                        <ul class="profile-favorites-list">${listItems}</ul>
+                    </div>
+                `;
+            } else {
+                favoritesHtml = `
+                    <div class="profile-stat" style="grid-column: 1 / -1; text-align: center;">
+                        <strong>0</strong>
+                        <span>Favorite Games</span>
+                        <p style="margin-top: 10px; color: var(--card-desc-color);">Go bookmark some games on the main page!</p>
+                    </div>
+                `;
+            }
+
+            profileContent.innerHTML = `
+                <h2><i class="fas fa-id-card"></i> ${user.name}'s Profile</h2>
+                
+                <div class="profile-stats-grid">
+                    <div class="profile-stat">
+                        <strong><i class="fas fa-coins"></i> ${user.coins || 0}</strong>
+                        <span>Current Coin Balance</span>
+                        <button onclick="buyCoins(100)" style="margin-top: 10px;" class="play-btn">Get 100 More Coins</button>
+                    </div>
+                    <div class="profile-stat">
+                        <strong><i class="fas fa-gamepad"></i> ${totalPlayed}</strong>
+                        <span>Total Games Played</span>
+                    </div>
+                    <div class="profile-stat">
+                        <strong><i class="fas fa-money-bill-wave"></i> ${totalSpent}</strong>
+                        <span>Total Coins Spent</span>
+                    </div>
+                    ${favoritesHtml}
+                </div>
+            `;
+            document.getElementById('profileBtn').classList.add('active');
+            document.getElementById('leaderboardBtn').classList.remove('active');
+        }
+        
+        /** Renders the coin leaderboard. */
+        function showLeaderboard() {
+            const users = getStoredUsers();
+            const realUsers = users.map(u => ({ name: u.name, coins: u.coins || 0 }));
+            
+            const uniqueRealUsers = realUsers.filter(r => !mockLeaderboard.some(m => m.name === r.name));
+            const combinedLeaderboard = [...mockLeaderboard, ...uniqueRealUsers]
+                .sort((a, b) => b.coins - a.coins)
+                .slice(0, 10);
+
+            const leaderboardHtml = combinedLeaderboard.map((user, index) => {
+                const rankIcon = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : ``;
+                return `<li>${rankIcon} ${index + 1}. ${user.name} <span><i class="fas fa-coins"></i> ${user.coins}</span></li>`;
+            }).join('');
+            
+            profileContent.innerHTML = `
+                <h2><i class="fas fa-trophy"></i> Coin Leaderboard (Top 10)</h2>
+                <div class="profile-stat" style="grid-column: 1 / -1;">
+                    <ul class="leaderboard-list">
+                        ${leaderboardHtml}
+                    </ul>
+                </div>
+            `;
+
+            document.getElementById('profileBtn').classList.remove('active');
+            document.getElementById('leaderboardBtn').classList.add('active');
+        }
+
+        window.buyCoins = function(amount) {
+            if (!currentUserEmail) {
+                showToast("Please log in on the main page to buy coins.", 'error');
+                return;
+            }
+
+            const users = getStoredUsers();
+            const userIndex = users.findIndex(u => u.email === currentUserEmail);
+
+            if (userIndex !== -1) {
+                users[userIndex].coins = (users[userIndex].coins || 0) + amount;
+                setStoredUsers(users);
+                showToast(`${amount} coins successfully added!`, 'success');
+                // Re-render profile to show new balance
+                viewProfile(); 
+            }
+        }
+        
+        window.displayView = function(view) {
+            if (view === 'profile') {
+                viewProfile();
+            } else if (view === 'leaderboard') {
+                showLeaderboard();
+            }
+            // Clear temporary view preference after use
+            localStorage.removeItem('arcade_view');
+        }
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeDarkMode(); // Apply dark mode if set
+            
+            // Check if user is logged in
+            if (!localStorage.getItem(STATE_KEY)) {
+                profileContent.innerHTML = '<h2><i class="fas fa-lock"></i> Please Sign In</h2><p style="color: var(--card-text-color);">You must be logged in to view your profile. <a href="index.html">Go to login page.</a></p>';
+                document.getElementById('profileBtn').disabled = true;
+                document.getElementById('leaderboardBtn').disabled = true;
+            } else {
+                // Check if the user clicked the leaderboard link from index.html
+                const requestedView = localStorage.getItem('arcade_view') || 'profile';
+                displayView(requestedView); 
+            }
+        });
+    </script>
+</body>
+</html>

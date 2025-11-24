@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arcade Supreme | Coin Vault</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" 
+            xintegrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKx3K9R/TjWfX2tW3bK7+Y+tA==" 
+            crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <style>
+        /* This section imports all essential styles and variables from your index.html */
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap');
+
+        /* DYNAMIC LIGHTING / GLOW EFFECT */
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 5px var(--glow-color), 0 0 0 rgba(255, 255, 255, 0); }
+            50% { box-shadow: 0 0 10px var(--glow-color), 0 0 15px rgba(255, 255, 255, 0.4); }
+            100% { box-shadow: 0 0 5px var(--glow-color), 0 0 0 rgba(255, 255, 255, 0); }
+        }
+        @keyframes rotate-coin {
+            from { transform: rotateY(0deg); }
+            to { transform: rotateY(360deg); }
+        }
+        
+        /* --- NEW: BACKGROUND ANIMATION (Dynamic Color Shift) --- */
+        @keyframes color-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* CSS VARIABLES FOR THEME */
+        :root {
+            /* Light Theme Defaults (Gaming Aesthetic) */
+            --body-background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><path fill="%238892B0" fill-opacity="0.1" d="M100 97.2L68.7 65.9c.7-.9 1.4-1.8 2.1-2.8l27.1 27.1L100 97.2zM0 2.8L31.3 34.1c-.7.9-1.4 1.8-2.1 2.8L1.7 9.8 0 2.8zM2.8 0L34.1 31.3c.9-.7 1.8-1.4 2.8-2.1L9.8 1.7 2.8 0zM97.2 100L65.9 68.7c.9.7 1.8 1.4 2.8 2.1L90.2 98.3 97.2 100zM0 97.2L31.3 65.9c-.7-.9-1.4-1.8-2.1-2.8L1.7 9.8 0 2.8z" /></svg>'); 
+            --background-base: #1a202c; /* Deep Charcoal */
+            --background-blend-gradient: linear-gradient(135deg, rgba(30, 40, 50, 0.9) 0%, rgba(50, 60, 70, 0.9) 100%);
+            /* BRIGHTER, LIGHTER GRADIENT MIXTURE for dynamic light/default theme */
+            --background-animation-gradient: linear-gradient(90deg, #FF6B6B, #4ECDC4, #45B7D1, #FF6B6B);
+            
+            --header-text-color: white;
+            --card-background: rgba(255, 255, 255, 0.95);
+            --card-text-color: #333;
+            --card-desc-color: #666;
+            --search-shadow: rgba(0,0,0,0.3);
+            --transition-speed: 0.3s;
+            --play-button-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --glow-color: #667eea; 
+            --sidebar-border: #eee;
+            --modal-bg: white;
+            --modal-text: #333;
+            --input-bg: #f0f0f0;
+            --input-text: #333;
+            --success-color: #4CAF50;
+            --cancel-color: #e91e63;
+        }
+
+        .dark-mode {
+            /* Dark Theme Overrides */
+            --body-background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><path fill="%234A5568" fill-opacity="0.15" d="M100 97.2L68.7 65.9c.7-.9 1.4-1.8 2.1-2.8l27.1 27.1L100 97.2zM0 2.8L31.3 34.1c-.7.9-1.4 1.8-2.1 2.8L1.7 9.8 0 2.8zM2.8 0L34.1 31.3c.9-.7 1.8-1.4 2.8-2.1L9.8 1.7 2.8 0zM97.2 100L65.9 68.7c.9.7 1.8 1.4 2.8 2.1L90.2 98.3 97.2 100zM0 97.2L31.3 65.9c-.7-.9-1.4-1.8-2.1-2.8L1.7 9.8 0 2.8z" /></svg>');
+            --background-base: #0f1418; /* Near Black */
+            --background-blend-gradient: linear-gradient(135deg, rgba(15, 20, 25, 0.95) 0%, rgba(25, 30, 35, 0.95) 100%);
+            --background-animation-gradient: linear-gradient(90deg, #1c1f24, #2c3648, #1c1f24); /* Subtle gray shift */
+            
+            --header-text-color: #e0e0e0;
+            --card-background: #2c3648;
+            --card-text-color: #e0e0e0;
+            --card-desc-color: #a0a8b4;
+            --search-shadow: rgba(0,0,0,0.6);
+            --play-button-bg: linear-gradient(135deg, #3a475a 0%, #525f7a 100%);
+            --glow-color: #a0f0ff;
+            --sidebar-border: #444;
+            --modal-bg: #1f2838;
+            --modal-text: #e0e0e0;
+            --input-bg: #1f2838;
+            --input-text: #e0e0e0;
+            --success-color: #00e676;
+            --cancel-color: #ff3d00;
+        }
+
+        /* Global & Body Styles */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Montserrat', sans-serif; 
+            background-color: var(--background-base); 
+            
+            /* Combined backgrounds: Texture + Animated Gradient + Static Overlay */
+            background-image: var(--body-background-image), var(--background-animation-gradient), var(--background-blend-gradient);
+            /* INCREASED SIZE for smoother, longer movement */
+            background-size: 100px 100px, 600% 600%, cover; 
+            background-blend-mode: overlay, normal, normal; 
+            background-attachment: fixed; 
+            min-height: 100vh; 
+            padding: 20px; 
+            color: var(--header-text-color);
+            transition: background var(--transition-speed);
+            
+            /* Apply moving color animation - slightly faster and smoother */
+            animation: color-shift 15s ease infinite;
+        }
+        #coin-app { max-width: 1000px; margin: 0 auto; padding: 30px 20px; }
+
+        /* Header Styles */
+        header { 
+            text-align: center; 
+            margin-bottom: 40px; 
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1); 
+            padding-bottom: 20px;
+        }
+        header h1 { 
+            font-size: 2.5rem; 
+            margin-bottom: 10px; 
+            color: #ffc107;
+            text-shadow: 0 0 5px rgba(255, 193, 7, 0.5); /* Subtle coin glow */
+        }
+        .balance-box {
+            font-size: 1.5rem;
+            font-weight: 700;
+            padding: 10px 20px;
+            display: inline-block;
+            border-radius: 5px;
+            background: rgba(0, 0, 0, 0.2);
+            --glow-color: #ffc107;
+            animation: pulse-glow 2.5s infinite alternate;
+        }
+        .balance-box i { margin-right: 10px; }
+        .back-button { 
+            display: block; 
+            margin: 20px auto 0; 
+            color: var(--header-text-color); 
+            text-decoration: none;
+            font-size: 1rem;
+            transition: opacity 0.2s;
+            text-align: left;
+        }
+        .back-button:hover { opacity: 0.8; }
+
+        /* Store Grid Styles */
+        .store-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .store-card {
+            background: var(--card-background);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 10px 25px var(--search-shadow);
+            transition: transform 0.3s;
+            position: relative;
+            color: var(--card-text-color);
+            border: 1px solid var(--sidebar-border);
+        }
+        .store-card.popular {
+            border: 3px solid #e91e63;
+            box-shadow: 0 0 20px rgba(233, 30, 99, 0.5); /* Extra pop for popular */
+        }
+        .store-card:hover {
+            transform: scale(1.03);
+            /* Enhanced hover glow using the primary glow color */
+            box-shadow: 0 15px 35px var(--search-shadow), 0 0 15px var(--glow-color);
+        }
+
+        .coin-icon-lg { 
+            font-size: 4rem; 
+            margin-bottom: 15px; 
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+        }
+        .store-card h3 { 
+            font-size: 1.5rem; 
+            margin-bottom: 10px; 
+            color: var(--card-text-color);
+        }
+        .amount { 
+            font-size: 1.8rem; 
+            font-weight: 700; 
+            color: #ffc107;
+            margin-bottom: 5px;
+        }
+        .price {
+            font-size: 1.1rem;
+            color: var(--card-desc-color);
+            margin-bottom: 15px;
+        }
+        .buy-btn { 
+            display: block;
+            width: 100%; 
+            padding: 12px 0; 
+            background: var(--play-button-bg); 
+            color: white; 
+            border: none; 
+            border-radius: 50px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+        }
+        .buy-btn:hover:not(:disabled) { 
+            opacity: 0.9; 
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        /* --- CUSTOM PURCHASE CARD STYLES --- */
+        .custom-purchase-card input[type="number"] {
+            width: 100%; 
+            padding: 10px; 
+            border-radius: 5px; 
+            border: 1px solid var(--sidebar-border); 
+            margin-bottom: 15px; 
+            background: var(--input-bg);
+            color: var(--input-text);
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        .custom-purchase-card #customCoinPriceDisplay {
+            font-size: 1.3rem;
+        }
+
+
+        /* Reward Section Styles */
+        .daily-reward-container {
+            max-width: 600px;
+            margin: 0 auto 40px auto;
+        }
+
+        .reward-card {
+            background: var(--card-background);
+            border: 2px solid #00c853; 
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            color: var(--card-text-color);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .icon-pulse {
+            font-size: 3rem;
+            color: #00c853; 
+            margin-bottom: 10px;
+            animation: pulse-glow 2s infinite alternate;
+            --glow-color: #00c853;
+        }
+        .reward-card h3 { color: #00c853; margin-bottom: 5px; }
+        #rewardTimer { color: #ffc107; font-weight: 600; }
+        
+        .play-btn { 
+            display: inline-block; 
+            padding: 12px 30px; 
+            background: var(--play-button-bg); 
+            color: white; 
+            text-decoration: none; 
+            border: none; 
+            border-radius: 50px; 
+            font-weight: 600; 
+            transition: transform 0.2s, box-shadow 0.2s, background var(--transition-speed); 
+            margin-top: 10px; 
+            cursor: pointer; 
+        }
+        .play-btn:disabled {
+            background: #999;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        .play-btn:hover:not(:disabled) { transform: scale(1.05); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); }
+
+        /* Transaction History Styles (Minor adjustment for visibility) */
+        .transaction-history {
+            margin-top: 40px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+        }
+        .transaction-history h3 {
+            color: var(--header-text-color);
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+        .history-list {
+            list-style: none;
+            padding: 0;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .history-list::-webkit-scrollbar { width: 5px; }
+        .history-list::-webkit-scrollbar-thumb { background: var(--glow-color); border-radius: 5px; }
+
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+            font-size: 0.95rem;
+            align-items: center;
+        }
+        .transaction-item:last-child { border-bottom: none; }
+        
+        .transaction-details {
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+        }
+        .transaction-details strong {
+            color: var(--card-text-color);
+            font-weight: 600;
+        }
+        .transaction-details span {
+            font-size: 0.8rem;
+            color: var(--card-desc-color);
+        }
+        
+        .transaction-amount {
+            font-weight: 700;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+        .transaction-amount.purchase { color: #ffc107; background: rgba(255, 193, 7, 0.1); }
+        .transaction-amount.claim { color: #00c853; background: rgba(0, 200, 83, 0.1); }
+
+        /* --- PURCHASE MODAL STYLES (Removed as modal is moved to purchase_page) --- */
+
+        /* Toast Container */
+        #toastContainer {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 10002; 
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast {
+            min-width: 250px;
+            padding: 15px;
+            background-color: var(--card-background);
+            color: var(--card-text-color);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            opacity: 0;
+            transition: opacity 0.5s, transform 0.5s;
+            transform: translateX(100%);
+            display: flex;
+            align-items: center;
+            font-weight: 500;
+        }
+        .toast.show { opacity: 1; transform: translateX(0); }
+        .toast i { margin-right: 10px; font-size: 1.2rem; }
+        .toast.success { border-left: 5px solid #4CAF50; }
+        .toast.error { border-left: 5px solid #f44336; }
+        .toast.info { border-left: 5px solid #2196F3; }
+
+        @media (max-width: 600px) {
+            .store-grid { grid-template-columns: 1fr; }
+            #coin-app { padding: 10px; }
+            header h1 { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="coin-app">
+        <header>
+            <!-- Link back to the main app (index.html is assumed) -->
+            <a href="index.html" class="back-button"><i class="fas fa-arrow-left"></i> Back to Arcade</a>
+            <h1><i class="fas fa-coins"></i> The Coin Vault</h1>
+            <span id="currentBalance" class="balance-box">
+                <i class="fas fa-coins"></i> 0
+            </span>
+        </header>
+
+        <main>
+            <!-- Daily Reward Section -->
+            <div class="daily-reward-container">
+                <div class="reward-card">
+                    <div class="icon-pulse"><i class="fas fa-gift"></i></div>
+                    <h3>Daily Login Bonus</h3>
+                    <p>Claim your reward once every 24 hours.</p>
+                    <button id="dailyRewardBtn" class="play-btn" onclick="claimDailyReward()">
+                        Claim 50 Coins
+                    </button>
+                    <p id="rewardTimer" style="font-size: 0.8rem; margin-top: 10px;"></p>
+                </div>
+            </div>
+
+            <!-- Coin Packages Grid -->
+            <div class="store-grid">
+                <!-- Custom Purchase Pack (Replaced Starter Pouch) -->
+                <div class="store-card custom-purchase-card">
+                    <div class="coin-icon-lg" style="color: #cd7f32;"><i class="fas fa-piggy-bank"></i></div>
+                    <h3>Custom Coin Builder</h3>
+                    
+                    <label for="customCoinInput" style="font-size: 0.9rem; color: var(--card-desc-color); display: block; margin-bottom: 5px;">Enter Coins (Min 50)</label>
+                    <input type="number" id="customCoinInput" value="100" min="50" step="50" oninput="calculatePrice()" autofocus
+                           style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid var(--sidebar-border); margin-bottom: 15px; background: var(--input-bg); color: var(--input-text);">
+                    
+                    <p class="amount" id="customCoinAmountDisplay">100 Coins</p>
+                    <p class="price">Price: <strong id="customCoinPriceDisplay">$0.99</strong> (Mock)</p>
+                    
+                    <button class="buy-btn" id="customBuyBtn" onclick="initiateCustomPurchase()">Purchase Custom</button>
+                </div>
+
+                <!-- Gamer Pack -->
+                <div class="store-card popular">
+                    <div class="trending-indicator" style="top: 15px; left: 15px; background: #e91e63;">POPULAR</div>
+                    <div class="coin-icon-lg" style="color: #c0c0c0;"><i class="fas fa-sack-dollar"></i></div>
+                    <h3>Gamer Stash</h3>
+                    <p class="amount">500 Coins</p>
+                    <p class="price">$4.99 (Mock)</p>
+                    <button class="buy-btn" onclick="initiateFixedPurchase(500, 'Gamer Stash', '$4.99')">Purchase</button>
+                </div>
+
+                <!-- Ultimate Pack -->
+                <div class="store-card">
+                    <div class="coin-icon-lg" style="color: #ffd700;"><i class="fas fa-gem"></i></div>
+                    <h3>Arcade Chest</h3>
+                    <p class="amount">2000 Coins</p>
+                    <p class="price">$14.99 (Mock)</p>
+                    <button class="buy-btn" onclick="initiateFixedPurchase(2000, 'Arcade Chest', '$14.99')">Purchase</button>
+                </div>
+            </div>
+
+            <!-- Transaction History -->
+            <div class="transaction-history">
+                <h3><i class="fas fa-history"></i> Transaction History</h3>
+                <ul id="transactionHistoryList" class="history-list">
+                    <!-- Transactions loaded here via JS -->
+                    <p style="text-align: center; color: var(--card-desc-color);" id="noTransactions">No transactions yet.</p>
+                </ul>
+            </div>
+
+        </main>
+    </div>
+    
+    <div id="toastContainer"></div>
+
+    <script>
+        // --- CONSTANTS AND MOCK DATABASE KEYS ---
+        const USER_KEY = 'arcade_users';
+        const EMAIL_KEY = 'arcade_current_email';
+        const DARK_MODE_KEY = 'arcade_dark_mode';
+        const DAILY_REWARD_AMOUNT = 50;
+        const COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+        const PURCHASE_DATA_KEY = 'arcade_pending_purchase'; // Key to pass data to new page
+        
+        // Custom Purchase Rate: $0.99 per 100 coins
+        const COIN_PRICE_PER_100 = 0.99; 
+        const MIN_CUSTOM_COINS = 50;
+
+
+        // --- GLOBAL STATE ---
+        let currentUserEmail = localStorage.getItem(EMAIL_KEY) || '';
+
+        // --- DOM ELEMENTS ---
+        const currentBalanceDisplay = document.getElementById('currentBalance');
+        const dailyRewardBtn = document.getElementById('dailyRewardBtn');
+        const rewardTimer = document.getElementById('rewardTimer');
+        const transactionHistoryList = document.getElementById('transactionHistoryList');
+        const toastContainer = document.getElementById('toastContainer');
+        
+        // Custom Coin Elements
+        const customCoinInput = document.getElementById('customCoinInput');
+        const customCoinAmountDisplay = document.getElementById('customCoinAmountDisplay');
+        const customCoinPriceDisplay = document.getElementById('customCoinPriceDisplay');
+        const customBuyBtn = document.getElementById('customBuyBtn');
+        
+        // --- UTILITY FUNCTIONS ---
+        const getStoredUsers = () => JSON.parse(localStorage.getItem(USER_KEY)) || [];
+        const setStoredUsers = (users) => localStorage.setItem(USER_KEY, JSON.stringify(users));
+
+        function showToast(message, type = 'info', duration = 3000) {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            let icon = '';
+            if (type === 'success') icon = '<i class="fas fa-check-circle"></i>';
+            else if (type === 'error') icon = '<i class="fas fa-times-circle"></i>';
+            else icon = '<i class="fas fa-info-circle"></i>';
+
+            toast.innerHTML = `${icon} ${message}`;
+            toastContainer.appendChild(toast);
+
+            setTimeout(() => { toast.classList.add('show'); }, 10); 
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => { toast.remove(); }, 500);
+            }, duration);
+        }
+
+        function updateCoinDisplay(email) {
+            const users = getStoredUsers();
+            const user = users.find(u => u.email === email);
+            const coins = (user && user.coins) || 0;
+            currentBalanceDisplay.innerHTML = `<i class="fas fa-coins"></i> ${coins}`;
+            return coins; 
+        }
+
+        // --- PURCHASE REDIRECTION LOGIC (New) ---
+        
+        function initiatePurchase(amount, name, price) {
+            if (!currentUserEmail) {
+                showToast("Please log in before making a purchase.", 'error');
+                return;
+            }
+
+            const users = getStoredUsers();
+            const user = users.find(u => u.email === currentUserEmail);
+            
+            if (!user) {
+                showToast("User session not found. Please log in again.", 'error');
+                return;
+            }
+
+            const purchaseData = {
+                amount: amount,
+                packageName: name,
+                price: price,
+                userName: user.name,
+                userEmail: user.email,
+                timestamp: Date.now()
+            };
+
+            // Save purchase data to localStorage for the next page to read
+            localStorage.setItem(PURCHASE_DATA_KEY, JSON.stringify(purchaseData));
+
+            showToast(`Redirecting to payment for ${name} (${price})...`, 'info');
+            
+            // Redirect to the new dedicated purchase page
+            window.location.href = 'purchase.html';
+        }
+
+        window.initiateFixedPurchase = function(amount, name, price) {
+            initiatePurchase(amount, name, price);
+        }
+        
+        // --- DYNAMIC PRICE CALCULATION ---
+        window.calculatePrice = function() {
+            let coins = parseInt(customCoinInput.value);
+            
+            if (isNaN(coins) || coins < MIN_CUSTOM_COINS) {
+                coins = MIN_CUSTOM_COINS;
+                customCoinInput.value = MIN_CUSTOM_COINS;
+            } else if (coins % 50 !== 0) {
+                coins = Math.floor(coins / 50) * 50;
+                customCoinInput.value = coins;
+            }
+
+            const price = (coins / 100) * COIN_PRICE_PER_100;
+            const formattedPrice = price.toFixed(2);
+            
+            customCoinAmountDisplay.textContent = `${coins} Coins`;
+            customCoinPriceDisplay.textContent = `$${formattedPrice}`;
+            
+            customBuyBtn.disabled = coins === 0;
+        }
+
+        window.initiateCustomPurchase = function() {
+            const coins = parseInt(customCoinInput.value);
+            const priceString = customCoinPriceDisplay.textContent;
+
+            if (coins < MIN_CUSTOM_COINS || coins % 50 !== 0) {
+                showToast(`Please enter a minimum of ${MIN_CUSTOM_COINS} coins, in increments of 50.`, 'error', 4000);
+                calculatePrice(); 
+                return;
+            }
+            
+            initiatePurchase(coins, 'Custom Purchase', priceString);
+        }
+        // --- END DYNAMIC PRICE CALCULATION ---
+
+
+        // --- TRANSACTION HISTORY FUNCTIONS (Simplified logTransaction remains) ---
+        function renderTransactionHistory(email) {
+            const users = getStoredUsers();
+            const user = users.find(u => u.email === email);
+            const transactions = (user && user.transactions) || [];
+
+            transactionHistoryList.innerHTML = ''; 
+            
+            if (transactions.length === 0) {
+                 transactionHistoryList.innerHTML = '<p style="text-align: center; color: var(--card-desc-color);">No transactions yet.</p>';
+                 return;
+            }
+
+            transactions.sort((a, b) => b.timestamp - a.timestamp);
+
+            transactions.forEach(tx => {
+                const li = document.createElement('li');
+                li.className = 'transaction-item';
+                
+                const date = new Date(tx.timestamp).toLocaleString();
+                const amountClass = tx.type === 'PURCHASE' || tx.type === 'CLAIM' ? (tx.type === 'CLAIM' ? 'claim' : 'purchase') : '';
+                const amountText = `+${tx.amount}`;
+
+                li.innerHTML = `
+                    <div class="transaction-details">
+                        <strong>${tx.description}</strong>
+                        <span>${date}</span>
+                    </div>
+                    <div class="transaction-amount ${amountClass}">
+                        ${amountText} <i class="fas fa-coins"></i>
+                    </div>
+                `;
+                transactionHistoryList.appendChild(li);
+            });
+        }
+        
+        function logTransaction(email, type, amount, description) {
+            const users = getStoredUsers();
+            const userIndex = users.findIndex(u => u.email === currentUserEmail);
+
+            if (userIndex !== -1) {
+                if (!users[userIndex].transactions) {
+                    users[userIndex].transactions = [];
+                }
+                users[userIndex].transactions.push({
+                    type: type,
+                    amount: amount,
+                    timestamp: Date.now(),
+                    description: description
+                });
+                setStoredUsers(users);
+                renderTransactionHistory(email);
+            }
+        }
+
+
+        // --- DAILY REWARD LOGIC ---
+        function getLastClaimTime() {
+            const users = getStoredUsers();
+            const user = users.find(u => u.email === currentUserEmail);
+            return (user && user.lastClaim) || 0;
+        }
+
+        function checkDailyRewardStatus() {
+            const lastClaim = getLastClaimTime();
+            const timeSinceClaim = Date.now() - lastClaim;
+
+            if (timeSinceClaim >= COOLDOWN_MS) {
+                dailyRewardBtn.disabled = false;
+                dailyRewardBtn.textContent = `Claim ${DAILY_REWARD_AMOUNT} Coins`;
+                rewardTimer.style.display = 'none';
+            } else {
+                dailyRewardBtn.disabled = true;
+                dailyRewardBtn.textContent = 'Reward Claimed';
+                rewardTimer.style.display = 'block';
+                startCountdown(COOLDOWN_MS - timeSinceClaim);
+            }
+        }
+
+        window.claimDailyReward = function() {
+            if (dailyRewardBtn.disabled) {
+                showToast("You can only claim the daily reward once every 24 hours.", 'error');
+                return;
+            }
+
+            const users = getStoredUsers();
+            const userIndex = users.findIndex(u => u.email === currentUserEmail);
+
+            if (userIndex !== -1) {
+                users[userIndex].coins = (users[userIndex].coins || 0) + DAILY_REWARD_AMOUNT;
+                users[userIndex].lastClaim = Date.now();
+                setStoredUsers(users);
+                
+                logTransaction(currentUserEmail, 'CLAIM', DAILY_REWARD_AMOUNT, 'Daily Login Bonus');
+                showToast(`Daily reward claimed! +${DAILY_REWARD_AMOUNT} Coins.`, 'success', 4000);
+                updateCoinDisplay(currentUserEmail);
+                checkDailyRewardStatus();
+            }
+        }
+        
+        function startCountdown(duration) {
+            let timer = duration;
+            if (window.rewardInterval) clearInterval(window.rewardInterval);
+
+            window.rewardInterval = setInterval(() => {
+                if (timer <= 0) {
+                    clearInterval(window.rewardInterval);
+                    checkDailyRewardStatus();
+                    return;
+                }
+                
+                timer -= 1000;
+                
+                const hours = Math.floor((timer / (1000 * 60 * 60)) % 24);
+                const minutes = Math.floor((timer / 1000 / 60) % 60);
+                const seconds = Math.floor((timer / 1000) % 60);
+
+                rewardTimer.textContent = `Next reward in: ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        // --- INITIALIZATION ---
+        function initializeCoinPage() {
+            const username = localStorage.getItem(STATE_KEY);
+            
+            if (!username || !currentUserEmail) {
+                showToast("Please log in to view the Coin Vault.", 'error', 5000);
+                return;
+            }
+
+            // Apply Dark Mode if preferred
+            if (localStorage.getItem(DARK_MODE_KEY) === 'true') {
+                document.body.classList.add('dark-mode');
+            }
+
+            updateCoinDisplay(currentUserEmail);
+            renderTransactionHistory(currentUserEmail);
+            checkDailyRewardStatus();
+            
+            // Initialize custom calculator on load
+            calculatePrice();
+        }
+
+        document.addEventListener('DOMContentLoaded', initializeCoinPage);
+
+    </script>
+</body>
+</html>
